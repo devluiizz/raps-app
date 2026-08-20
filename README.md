@@ -46,10 +46,10 @@ O sistema é desenvolvido para auxiliar os serviços que integram a RAPS de Poç
 
 ## Equipe
 
-- Luiz Felipe De Oliveira
-- Matheus José Gonçalves dos Reis
-- Rafael Nascimento Abelini
-- Vitor Eduardo Felicio
+- [Luiz Felipe De Oliveira](https://github.com/devluiizz)
+- [Matheus José Gonçalves dos Reis](https://github.com/MatheusJGReis)
+- [Rafael Nascimento Abelini](https://github.com/rafaelabelini)
+- [Vitor Eduardo Felicio](https://github.com/VitorDev830)
 
 O projeto está sendo desenvolvido em contexto acadêmico, como parte da disciplina de Desenvolvimento de Software para Dispositivos Móveis.
 
