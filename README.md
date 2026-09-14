@@ -44,6 +44,49 @@ O sistema é desenvolvido para auxiliar os serviços que integram a RAPS de Poç
 - Kotlin
 - Android
 
+## Como rodar o projeto
+
+### Pré-requisitos
+
+- [Android Studio](https://developer.android.com/studio) atualizado (Ladybug ou mais recente).
+- Android SDK 36 instalado (Android Studio faz isso pelo **SDK Manager** no primeiro sync, caso ainda não esteja instalado).
+- Não é necessário instalar JDK separado: use o JDK que já vem embutido no Android Studio (JBR), conforme o passo abaixo.
+
+### Passo a passo
+
+1. **Clone o repositório**
+
+   ```bash
+   git clone https://github.com/devluiizz/raps-app.git
+   ```
+
+2. **Abra no Android Studio**
+
+   `File > Open...` e selecione a pasta do projeto clonado.
+
+3. **Confira o Gradle JDK**
+
+   Em `File > Settings > Build, Execution, Deployment > Build Tools > Gradle`, o campo **Gradle JDK** deve apontar para o JDK embutido do Android Studio (`jbr-21` ou equivalente). Se estiver apontando para outro JDK/JRE instalado na máquina, o sync pode falhar e o projeto inteiro aparece com erros de "unresolved reference" — troque para o JBR e sincronize novamente.
+
+4. **Sincronize o projeto**
+
+   `File > Sync Project with Gradle Files` (ou clique no ícone do elefante na barra de ferramentas). Na primeira vez, o Android Studio baixa as dependências do Compose/Kotlin — pode levar alguns minutos.
+
+5. **Rode o app**
+
+   Selecione o módulo `app` na barra de execução, escolha um emulador ou um aparelho físico conectado (com depuração USB ativada) e clique em **Run** (▶).
+
+### Rodar pelo terminal (opcional)
+
+```bash
+./gradlew assembleDebug   # gera o APK de debug
+./gradlew test            # roda os testes unitários
+```
+
+### Onde mexer em cores e fontes
+
+O design system fica em `app/src/main/java/com/raps/app/ui/theme/` (`Color.kt`, `Type.kt`, `Theme.kt`), com um comentário de exemplo de uso em cada arquivo. As diretrizes oficiais de onde esses valores vêm estão em [DESIGN.md](DESIGN.md) — qualquer alteração de cor ou fonte deve ser validada lá antes de mudar o código.
+
 ## Equipe
 
 - [Luiz Felipe De Oliveira](https://github.com/devluiizz)
