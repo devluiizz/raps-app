@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+        Usado apenas pela janela do Android antes do primeiro frame do Compose (splash/status
+        bar). Toda a interface em si é estilizada por RapsAppTheme, em Kotlin.
+    -->
+    <style name="Base.Theme.RapsApp" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/raps_bg_light</item>
+    </style>
+
+    <style name="Theme.RapsApp" parent="Base.Theme.RapsApp" />
+</resources>
