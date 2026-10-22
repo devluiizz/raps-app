@@ -11,9 +11,10 @@ import com.raps.app.data.Profissional
         Paciente::class,
         Profissional::class,
         Caps::class,
-        Prontuario::class
+        Prontuario::class,
+        Agenda::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,6 +22,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun profissionalDao(): ProfissionalDao
     abstract fun capsDao(): CapsDao
     abstract fun prontuarioDao(): ProntuarioDao
+    abstract fun agendaDao(): AgendaDao
 
     companion object {
         @Volatile

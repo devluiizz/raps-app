@@ -23,4 +23,8 @@ interface PacienteDao {
     @Query("SELECT * FROM pacientes")
     fun listarComProntuario(): Flow<List<PacienteComProntuario>>
 
+    @Transaction
+    @Query("SELECT * FROM pacientes")
+    fun listarComAgenda(): Flow<List<PacienteComAgenda>>
+
 }

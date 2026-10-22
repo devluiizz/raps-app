@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -17,4 +18,8 @@ interface ProfissionalDao {
 
     @Delete
     suspend fun deletar(profissional: Profissional)
+
+    @Transaction
+    @Query("SELECT * FROM profissionais")
+    fun listarComAgenda(): Flow<List<ProfissionalComAgenda>>
 }
