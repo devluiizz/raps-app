@@ -9,7 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.raps.app.ui.Patient
+import com.raps.app.ui.PacienteMock
 import com.raps.app.ui.TelaLogin
 import com.raps.app.ui.TelaPacientes
 import com.raps.app.ui.TelaProntuario
@@ -21,17 +21,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             RapsAppTheme {
-                var isLoggedIn by remember { mutableStateOf(false) }
-                var selectedPatient by remember { mutableStateOf<Patient?>(null) }
-                BackHandler(enabled = isLoggedIn && selectedPatient != null) { selectedPatient = null }
-                if (!isLoggedIn) {
-                    TelaLogin(onLogin = { isLoggedIn = true })
-                } else if (selectedPatient == null) {
-                    TelaPacientes(onPatientClick = { selectedPatient = it })
+                var estaLogado by remember { mutableStateOf(false) }
+                var pacienteSelecionado by remember { mutableStateOf<PacienteMock?>(null) }
+                BackHandler(enabled = estaLogado && pacienteSelecionado != null) { pacienteSelecionado = null }
+                if (!estaLogado) {
+                    TelaLogin(aoEntrar = { estaLogado = true })
+                } else if (pacienteSelecionado == null) {
+                    TelaPacientes(aoClicarPaciente = { pacienteSelecionado = it })
                 } else {
                     TelaProntuario(
-                        patient = selectedPatient!!,
-                        onBack = { selectedPatient = null },
+                        paciente = pacienteSelecionado!!,
+                        aoVoltar = { pacienteSelecionado = null },
                     )
                 }
             }

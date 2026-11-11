@@ -44,9 +44,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,50 +76,36 @@ import com.raps.app.ui.theme.RapsTextPrimary
 import com.raps.app.ui.theme.RapsTextSecondary
 import com.raps.app.ui.theme.RapsTypography
 
-data class Patient(
-    val name: String,
-    val initials: String,
-    val record: String,
-    val lastVisit: String,
-    val tags: List<String>,
-)
-
-private val samplePatients = listOf(
-    Patient("João da Silva", "JS", "#79", "Hoje, 10:20", listOf("Psicologia", "+2")),
-    Patient("Joana Braga", "JB", "#79", "Hoje, 10:20", listOf("Grupo de Mulheres", "+3")),
-    Patient("Samuel José", "SJ", "#79", "Hoje, 10:20", listOf("Assistência Social", "+5")),
-    Patient("Inacio Renan", "IR", "#79", "Hoje, 10:20", listOf("Psicologia", "Grupo de Homens")),
-    Patient("Pedro José", "PJ", "#79", "Hoje, 10:20", listOf("Grupo de Homens", "+2")),
+data class PacienteMock(
+    val nome: String,
+    val iniciais: String,
+    val numeroProntuario: String,
+    val ultimaVisita: String,
+    val etiquetas: List<String>,
 )
 
 @Composable
-fun TelaPacientes(onPatientClick: (Patient) -> Unit = {}) {
-    var query by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("Todos") }
-    var filterMenuExpanded by remember { mutableStateOf(false) }
-
-    val filters = listOf("Todos", "Psicologia", "Grupo de Mulheres", "Assistência Social", "Grupo de Homens")
-    val visiblePatients = samplePatients.filter { patient ->
-        val matchesQuery = query.isBlank() || patient.name.contains(query.trim(), ignoreCase = true) ||
-            patient.record.contains(query.trim(), ignoreCase = true)
-        val matchesFilter = selectedFilter == "Todos" || patient.tags.any { it == selectedFilter }
-        matchesQuery && matchesFilter
+fun TelaPacientes(aoClicarPaciente: (PacienteMock) -> Unit = {}, modeloTelaPacientes: TelaPacientesViewModel = viewModel()) {
+    val estadoDaTela by modeloTelaPacientes.estadoDaTela.collectAsStateWithLifecycle()
+    var menuFiltroExpandido by remember { mutableStateOf(false) }
+    DisposableEffect(modeloTelaPacientes) {
+        onDispose { modeloTelaPacientes.redefinirFiltros() }
     }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = RapsBgLight,
         contentWindowInsets = WindowInsets(0.dp),
-        bottomBar = { PatientBottomBar() },
-    ) { innerPadding ->
+        bottomBar = { BarraInferiorPacientes() },
+    ) { preenchimentoInterno ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(preenchimentoInterno)
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .background(RapsBgLight),
         ) {
-            PatientHeader()
+            CabecalhoPacientes()
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -129,10 +118,10 @@ fun TelaPacientes(onPatientClick: (Patient) -> Unit = {}) {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 item {
-                    SearchField(
-                        value = query,
-                        onValueChange = { query = it },
-                        resultCount = visiblePatients.size,
+                    CampoBusca(
+                        consulta = estadoDaTela.consulta,
+                        onValueChange = modeloTelaPacientes::aoAlterarConsulta,
+                        quantidadeResultados = estadoDaTela.pacientesVisiveis.size,
                     )
                 }
                 item {
@@ -149,24 +138,24 @@ fun TelaPacientes(onPatientClick: (Patient) -> Unit = {}) {
                             modifier = Modifier
                                 .clip(RoundedCornerShape(11.dp))
                                 .background(Color.White)
-                                .clickable { filterMenuExpanded = true }
+                                .clickable { menuFiltroExpandido = true }
                                 .padding(start = 12.dp, end = 9.dp, top = 5.dp, bottom = 5.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(selectedFilter, color = RapsAccent, style = RapsTypography.bodyRegular10)
+                            Text(estadoDaTela.filtroSelecionado, color = RapsAccent, style = RapsTypography.bodyRegular10)
                             Spacer(Modifier.width(8.dp))
-                            TinyChevron(modifier = Modifier.size(14.dp), color = RapsTextPrimary)
+                            SetaDuplaPequena(modifier = Modifier.size(14.dp), color = RapsTextPrimary)
                         }
                         DropdownMenu(
-                            expanded = filterMenuExpanded,
-                            onDismissRequest = { filterMenuExpanded = false },
+                            expanded = menuFiltroExpandido,
+                            onDismissRequest = { menuFiltroExpandido = false },
                         ) {
-                            filters.forEach { filter ->
+                            TelaPacientesViewModel.UiState.filtros.forEach { filtro ->
                                 DropdownMenuItem(
-                                    text = { Text(filter, style = RapsTypography.bodyRegular12) },
+                                    text = { Text(filtro, style = RapsTypography.bodyRegular12) },
                                     onClick = {
-                                        selectedFilter = filter
-                                        filterMenuExpanded = false
+                                        modeloTelaPacientes.aoSelecionarFiltro(filtro)
+                                        menuFiltroExpandido = false
                                     },
                                 )
                             }
@@ -204,7 +193,7 @@ fun TelaPacientes(onPatientClick: (Patient) -> Unit = {}) {
                         )
                     }
                 }
-                if (visiblePatients.isEmpty()) {
+                if (estadoDaTela.pacientesVisiveis.isEmpty()) {
                     item {
                         Text(
                             text = "Nenhum paciente encontrado",
@@ -214,8 +203,8 @@ fun TelaPacientes(onPatientClick: (Patient) -> Unit = {}) {
                         )
                     }
                 } else {
-                    items(visiblePatients, key = { it.name }) { patient ->
-                        PacienteItemCard(patient, onClick = { onPatientClick(patient) })
+                    items(estadoDaTela.pacientesVisiveis, key = { it.nome }) { paciente ->
+                        CartaoPaciente(paciente, onClick = { aoClicarPaciente(paciente) })
                     }
                 }
             }
@@ -224,7 +213,7 @@ fun TelaPacientes(onPatientClick: (Patient) -> Unit = {}) {
 }
 
 @Composable
-private fun PatientHeader() {
+private fun CabecalhoPacientes() {
     Column {
         Row(
             modifier = Modifier
@@ -244,10 +233,10 @@ private fun PatientHeader() {
                 Text("Pacientes", color = RapsTextPrimary, style = RapsTypography.h5.copy(fontSize = 18.sp))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                HeaderIconButton { SearchGlyph(Modifier.size(18.dp), RapsTextPrimary) }
-                HeaderIconButton {
+                BotaoIconeCabecalho { IconeBusca(Modifier.size(18.dp), RapsTextPrimary) }
+                BotaoIconeCabecalho {
                     Box {
-                        BellGlyph(Modifier.size(18.dp), RapsTextPrimary)
+                        IconeSino(Modifier.size(18.dp), RapsTextPrimary)
                         Box(
                             Modifier
                                 .align(Alignment.TopEnd)
@@ -264,7 +253,7 @@ private fun PatientHeader() {
 }
 
 @Composable
-private fun HeaderIconButton(content: @Composable () -> Unit) {
+private fun BotaoIconeCabecalho(content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
             .size(38.dp)
@@ -276,7 +265,7 @@ private fun HeaderIconButton(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun SearchField(value: String, onValueChange: (String) -> Unit, resultCount: Int) {
+private fun CampoBusca(consulta: String, onValueChange: (String) -> Unit, quantidadeResultados: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -286,14 +275,14 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit, resultCo
             .padding(start = 11.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SearchGlyph(Modifier.size(17.dp), RapsTextPrimary)
+        IconeBusca(Modifier.size(17.dp), RapsTextPrimary)
         Spacer(Modifier.width(9.dp))
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-            if (value.isEmpty()) {
+            if (consulta.isEmpty()) {
                 Text("Nome, CPF ou Prontuário", color = RapsTextSecondary, style = RapsTypography.bodyRegular12)
             }
             BasicTextField(
-                value = value,
+                value = consulta,
                 onValueChange = onValueChange,
                 singleLine = true,
                 textStyle = RapsTypography.bodyRegular12.copy(color = RapsTextPrimary),
@@ -306,13 +295,13 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit, resultCo
                 .background(RapsSurface02),
             contentAlignment = Alignment.Center,
         ) {
-            Text(resultCount.toString(), color = RapsTextPrimary, style = RapsTypography.bold12)
+            Text(quantidadeResultados.toString(), color = RapsTextPrimary, style = RapsTypography.bold12)
         }
     }
 }
 
 @Composable
-internal fun PatientBottomBar() {
+internal fun BarraInferiorPacientes() {
     Surface(color = Color.White, shadowElevation = 0.dp) {
         Column(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)) {
             Box(Modifier.fillMaxWidth().height(1.dp).background(RapsBorderDefault))
@@ -324,33 +313,33 @@ internal fun PatientBottomBar() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceAround,
             ) {
-                BottomItem("Início", "home")
-                BottomItem("Pacientes", "patient", selected = true)
-                BottomItem("Agenda", "calendar")
-                BottomItem("Minha agenda", "personAdd")
-                BottomItem("Mais", "more")
+                ItemBarraInferior("Início", "inicio")
+                ItemBarraInferior("Pacientes", "paciente", selecionado = true)
+                ItemBarraInferior("Agenda", "calendario")
+                ItemBarraInferior("Minha agenda", "adicionarPessoa")
+                ItemBarraInferior("Mais", "mais")
             }
         }
     }
 }
 
 @Composable
-private fun BottomItem(label: String, icon: String, selected: Boolean = false) {
+private fun ItemBarraInferior(rotulo: String, nomeIcone: String, selecionado: Boolean = false) {
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(if (selected) RapsPrimarySoft else Color.Transparent)
-            .width(if (selected) 64.dp else 57.dp)
+            .background(if (selecionado) RapsPrimarySoft else Color.Transparent)
+            .width(if (selecionado) 64.dp else 57.dp)
             .height(48.dp)
             .clickable { },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        NavigationGlyph(icon, Modifier.size(18.dp), if (selected) RapsPrimaryStrong else RapsTextSecondary)
+        IconeNavegacao(nomeIcone, Modifier.size(18.dp), if (selecionado) RapsPrimaryStrong else RapsTextSecondary)
         Spacer(Modifier.height(3.dp))
         Text(
-            label,
-            color = if (selected) RapsPrimaryStrong else RapsTextSecondary,
+            rotulo,
+            color = if (selecionado) RapsPrimaryStrong else RapsTextSecondary,
             style = RapsTypography.bodyRegular10.copy(fontSize = 8.sp),
             maxLines = 1,
         )
@@ -358,19 +347,19 @@ private fun BottomItem(label: String, icon: String, selected: Boolean = false) {
 }
 
 @Composable
-private fun SearchGlyph(modifier: Modifier = Modifier, color: Color) {
+private fun IconeBusca(modifier: Modifier = Modifier, color: Color) {
     Canvas(modifier) {
-        val stroke = 1.8.dp.toPx()
-        drawCircle(color, radius = size.minDimension * .29f, center = androidx.compose.ui.geometry.Offset(size.width * .42f, size.height * .42f), style = Stroke(stroke))
-        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .64f, size.height * .64f), androidx.compose.ui.geometry.Offset(size.width * .88f, size.height * .88f), stroke, cap = StrokeCap.Round)
+        val espessuraTraco = 1.8.dp.toPx()
+        drawCircle(color, radius = size.minDimension * .29f, center = androidx.compose.ui.geometry.Offset(size.width * .42f, size.height * .42f), style = Stroke(espessuraTraco))
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .64f, size.height * .64f), androidx.compose.ui.geometry.Offset(size.width * .88f, size.height * .88f), espessuraTraco, cap = StrokeCap.Round)
     }
 }
 
 @Composable
-private fun BellGlyph(modifier: Modifier = Modifier, color: Color) {
+private fun IconeSino(modifier: Modifier = Modifier, color: Color) {
     Canvas(modifier) {
-        val stroke = 1.7.dp.toPx()
-        val p = Path().apply {
+        val espessuraTraco = 1.7.dp.toPx()
+        val caminho = Path().apply {
             moveTo(size.width * .22f, size.height * .72f)
             lineTo(size.width * .30f, size.height * .60f)
             lineTo(size.width * .30f, size.height * .42f)
@@ -379,55 +368,55 @@ private fun BellGlyph(modifier: Modifier = Modifier, color: Color) {
             lineTo(size.width * .80f, size.height * .72f)
             close()
         }
-        drawPath(p, color, style = Stroke(stroke, cap = StrokeCap.Round))
-        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .18f, size.height * .75f), androidx.compose.ui.geometry.Offset(size.width * .82f, size.height * .75f), stroke, cap = StrokeCap.Round)
-        drawArc(color, 25f, 130f, false, androidx.compose.ui.geometry.Offset(size.width * .39f, size.height * .73f), androidx.compose.ui.geometry.Size(size.width * .22f, size.height * .20f), style = Stroke(stroke))
+        drawPath(caminho, color, style = Stroke(espessuraTraco, cap = StrokeCap.Round))
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .18f, size.height * .75f), androidx.compose.ui.geometry.Offset(size.width * .82f, size.height * .75f), espessuraTraco, cap = StrokeCap.Round)
+        drawArc(color, 25f, 130f, false, androidx.compose.ui.geometry.Offset(size.width * .39f, size.height * .73f), androidx.compose.ui.geometry.Size(size.width * .22f, size.height * .20f), style = Stroke(espessuraTraco))
     }
 }
 
 @Composable
-internal fun TinyChevron(modifier: Modifier = Modifier, color: Color) {
+internal fun SetaDuplaPequena(modifier: Modifier = Modifier, color: Color) {
     Canvas(modifier) {
-        val p = Path().apply {
+        val caminho = Path().apply {
             moveTo(size.width * .38f, size.height * .20f)
             lineTo(size.width * .68f, size.height * .50f)
             lineTo(size.width * .38f, size.height * .80f)
         }
-        drawPath(p, color, style = Stroke(width = 1.8.dp.toPx(), cap = StrokeCap.Round))
+        drawPath(caminho, color, style = Stroke(width = 1.8.dp.toPx(), cap = StrokeCap.Round))
     }
 }
 
 @Composable
-private fun NavigationGlyph(name: String, modifier: Modifier, color: Color) {
+private fun IconeNavegacao(nome: String, modifier: Modifier, color: Color) {
     Canvas(modifier) {
-        val s = Stroke(width = 1.45.dp.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round)
-        when (name) {
-            "home" -> {
-                val p = Path().apply { moveTo(size.width * .12f, .48f * size.height); lineTo(.5f * size.width, .13f * size.height); lineTo(.88f * size.width, .48f * size.height); lineTo(.82f * size.width, .48f * size.height); lineTo(.82f * size.width, .89f * size.height); lineTo(.18f * size.width, .89f * size.height); lineTo(.18f * size.width, .48f * size.height); close() }
-                drawPath(p, color, style = s)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .43f, size.height * .89f), androidx.compose.ui.geometry.Offset(size.width * .43f, size.height * .62f), s.width)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .57f, size.height * .62f), androidx.compose.ui.geometry.Offset(size.width * .57f, size.height * .89f), s.width)
+        val estiloTraco = Stroke(width = 1.45.dp.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round)
+        when (nome) {
+            "inicio" -> {
+                val caminho = Path().apply { moveTo(size.width * .12f, .48f * size.height); lineTo(.5f * size.width, .13f * size.height); lineTo(.88f * size.width, .48f * size.height); lineTo(.82f * size.width, .48f * size.height); lineTo(.82f * size.width, .89f * size.height); lineTo(.18f * size.width, .89f * size.height); lineTo(.18f * size.width, .48f * size.height); close() }
+                drawPath(caminho, color, style = estiloTraco)
+                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .43f, size.height * .89f), androidx.compose.ui.geometry.Offset(size.width * .43f, size.height * .62f), estiloTraco.width)
+                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .57f, size.height * .62f), androidx.compose.ui.geometry.Offset(size.width * .57f, size.height * .89f), estiloTraco.width)
             }
-            "patient" -> {
-                drawCircle(color, size.minDimension * .17f, androidx.compose.ui.geometry.Offset(size.width * .50f, size.height * .30f), style = s)
-                val p = Path().apply { moveTo(.14f * size.width, .84f * size.height); cubicTo(.15f * size.width, .52f * size.height, .85f * size.width, .52f * size.height, .86f * size.width, .84f * size.height); close() }
-                drawPath(p, color, style = s)
+            "paciente" -> {
+                drawCircle(color, size.minDimension * .17f, androidx.compose.ui.geometry.Offset(size.width * .50f, size.height * .30f), style = estiloTraco)
+                val caminho = Path().apply { moveTo(.14f * size.width, .84f * size.height); cubicTo(.15f * size.width, .52f * size.height, .85f * size.width, .52f * size.height, .86f * size.width, .84f * size.height); close() }
+                drawPath(caminho, color, style = estiloTraco)
             }
-            "calendar" -> {
-                drawRoundRect(color, androidx.compose.ui.geometry.Offset(size.width * .12f, size.height * .20f), androidx.compose.ui.geometry.Size(size.width * .76f, size.height * .68f), androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()), style = s)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .12f, size.height * .40f), androidx.compose.ui.geometry.Offset(size.width * .88f, size.height * .40f), s.width)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .32f, size.height * .10f), androidx.compose.ui.geometry.Offset(size.width * .32f, size.height * .30f), s.width, cap = StrokeCap.Round)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .68f, size.height * .10f), androidx.compose.ui.geometry.Offset(size.width * .68f, size.height * .30f), s.width, cap = StrokeCap.Round)
+            "calendario" -> {
+                drawRoundRect(color, androidx.compose.ui.geometry.Offset(size.width * .12f, size.height * .20f), androidx.compose.ui.geometry.Size(size.width * .76f, size.height * .68f), androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()), style = estiloTraco)
+                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .12f, size.height * .40f), androidx.compose.ui.geometry.Offset(size.width * .88f, size.height * .40f), estiloTraco.width)
+                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .32f, size.height * .10f), androidx.compose.ui.geometry.Offset(size.width * .32f, size.height * .30f), estiloTraco.width, cap = StrokeCap.Round)
+                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .68f, size.height * .10f), androidx.compose.ui.geometry.Offset(size.width * .68f, size.height * .30f), estiloTraco.width, cap = StrokeCap.Round)
             }
-            "personAdd" -> {
-                drawCircle(color, size.minDimension * .15f, androidx.compose.ui.geometry.Offset(size.width * .40f, size.height * .30f), style = s)
-                val p = Path().apply { moveTo(.08f * size.width, .84f * size.height); cubicTo(.08f * size.width, .53f * size.height, .70f * size.width, .53f * size.height, .70f * size.width, .84f * size.height) }
-                drawPath(p, color, style = s)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .78f, size.height * .30f), androidx.compose.ui.geometry.Offset(size.width * .78f, size.height * .58f), s.width, cap = StrokeCap.Round)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .64f, size.height * .44f), androidx.compose.ui.geometry.Offset(size.width * .92f, size.height * .44f), s.width, cap = StrokeCap.Round)
+            "adicionarPessoa" -> {
+                drawCircle(color, size.minDimension * .15f, androidx.compose.ui.geometry.Offset(size.width * .40f, size.height * .30f), style = estiloTraco)
+                val caminho = Path().apply { moveTo(.08f * size.width, .84f * size.height); cubicTo(.08f * size.width, .53f * size.height, .70f * size.width, .53f * size.height, .70f * size.width, .84f * size.height) }
+                drawPath(caminho, color, style = estiloTraco)
+                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .78f, size.height * .30f), androidx.compose.ui.geometry.Offset(size.width * .78f, size.height * .58f), estiloTraco.width, cap = StrokeCap.Round)
+                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .64f, size.height * .44f), androidx.compose.ui.geometry.Offset(size.width * .92f, size.height * .44f), estiloTraco.width, cap = StrokeCap.Round)
             }
             else -> {
-                repeat(3) { index -> drawCircle(color, 1.4.dp.toPx(), androidx.compose.ui.geometry.Offset(size.width * (.22f + .28f * index), size.height * .50f)) }
+                repeat(3) { indice -> drawCircle(color, 1.4.dp.toPx(), androidx.compose.ui.geometry.Offset(size.width * (.22f + .28f * indice), size.height * .50f)) }
             }
         }
     }
@@ -435,7 +424,7 @@ private fun NavigationGlyph(name: String, modifier: Modifier, color: Color) {
 
 @Preview(showBackground = true)
 @Composable
-private fun PatientListPreview() {
+private fun PreviaListaPacientes() {
     RapsAppTheme { TelaPacientes() }
 }
 

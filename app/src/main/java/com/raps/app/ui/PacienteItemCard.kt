@@ -29,7 +29,7 @@ import com.raps.app.ui.theme.RapsTextPrimary
 import com.raps.app.ui.theme.RapsTextSecondary
 import com.raps.app.ui.theme.RapsTypography
 @Composable
-fun PacienteItemCard(patient: Patient, onClick: () -> Unit = {}) {
+fun CartaoPaciente(paciente: PacienteMock, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -47,38 +47,38 @@ fun PacienteItemCard(patient: Patient, onClick: () -> Unit = {}) {
                 .background(RapsSurface02),
             contentAlignment = Alignment.Center,
         ) {
-            Text(patient.initials, color = RapsTextPrimary, style = RapsTypography.bold18.copy(fontSize = 18.sp))
+            Text(paciente.iniciais, color = RapsTextPrimary, style = RapsTypography.bold18.copy(fontSize = 18.sp))
         }
         Spacer(Modifier.width(9.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Text(
-                text = patient.name,
+                text = paciente.nome,
                 color = RapsTextPrimary,
                 style = RapsTypography.bold12,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "Prontuário ${patient.record} • ${patient.lastVisit}",
+                text = "Prontuário ${paciente.numeroProntuario} • ${paciente.ultimaVisita}",
                 color = RapsTextSecondary,
                 style = RapsTypography.bodyRegular10.copy(fontSize = 9.sp),
                 maxLines = 1,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                patient.tags.forEach { tag ->
+                paciente.etiquetas.forEach { etiqueta ->
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(3.dp))
                             .background(RapsAccentSoft)
                             .padding(horizontal = 5.dp, vertical = 1.dp),
                     ) {
-                        Text(tag, color = RapsAccent, style = RapsTypography.bodyRegular10.copy(fontSize = 8.sp), maxLines = 1)
+                        Text(etiqueta, color = RapsAccent, style = RapsTypography.bodyRegular10.copy(fontSize = 8.sp), maxLines = 1)
                     }
                 }
             }
         }
         Spacer(Modifier.width(8.dp))
-        TinyChevron(Modifier.size(18.dp), RapsTextPrimary)
+        SetaDuplaPequena(Modifier.size(18.dp), RapsTextPrimary)
     }
 }
 
