@@ -1,6 +1,9 @@
 package com.raps.app.ui.pacientes
 import com.raps.app.presentation.model.PacienteMock
 import com.raps.app.ui.components.BarraInferiorPacientes
+import com.raps.app.ui.components.BotaoBuscaCabecalho
+import com.raps.app.ui.components.BotaoNotificacoesCabecalho
+import com.raps.app.ui.components.IconeBusca
 import com.raps.app.ui.components.SetaDuplaPequena
 
 import android.os.Bundle
@@ -8,7 +11,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -58,9 +60,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -228,35 +227,12 @@ private fun CabecalhoPacientes() {
                 Text("Pacientes", color = RapsTextPrimary, style = RapsTypography.h5.copy(fontSize = 18.sp))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                BotaoIconeCabecalho { IconeBusca(Modifier.size(18.dp), RapsTextPrimary) }
-                BotaoIconeCabecalho {
-                    Box {
-                        IconeSino(Modifier.size(18.dp), RapsTextPrimary)
-                        Box(
-                            Modifier
-                                .align(Alignment.TopEnd)
-                                .size(7.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFC9535F)),
-                        )
-                    }
-                }
+                BotaoBuscaCabecalho()
+                BotaoNotificacoesCabecalho()
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(RapsBorderDefault))
     }
-}
-
-@Composable
-private fun BotaoIconeCabecalho(content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(38.dp)
-            .clip(RoundedCornerShape(13.dp))
-            .background(Color.White)
-            .clickable { },
-        contentAlignment = Alignment.Center,
-    ) { content() }
 }
 
 @Composable
@@ -292,34 +268,6 @@ private fun CampoBusca(consulta: String, onValueChange: (String) -> Unit, quanti
         ) {
             Text(quantidadeResultados.toString(), color = RapsTextPrimary, style = RapsTypography.bold12)
         }
-    }
-}
-
-@Composable
-private fun IconeBusca(modifier: Modifier = Modifier, color: Color) {
-    Canvas(modifier) {
-        val espessuraTraco = 1.8.dp.toPx()
-        drawCircle(color, radius = size.minDimension * .29f, center = androidx.compose.ui.geometry.Offset(size.width * .42f, size.height * .42f), style = Stroke(espessuraTraco))
-        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .64f, size.height * .64f), androidx.compose.ui.geometry.Offset(size.width * .88f, size.height * .88f), espessuraTraco, cap = StrokeCap.Round)
-    }
-}
-
-@Composable
-private fun IconeSino(modifier: Modifier = Modifier, color: Color) {
-    Canvas(modifier) {
-        val espessuraTraco = 1.7.dp.toPx()
-        val caminho = Path().apply {
-            moveTo(size.width * .22f, size.height * .72f)
-            lineTo(size.width * .30f, size.height * .60f)
-            lineTo(size.width * .30f, size.height * .42f)
-            cubicTo(size.width * .30f, size.height * .03f, size.width * .70f, size.height * .03f, size.width * .70f, size.height * .42f)
-            lineTo(size.width * .70f, size.height * .60f)
-            lineTo(size.width * .80f, size.height * .72f)
-            close()
-        }
-        drawPath(caminho, color, style = Stroke(espessuraTraco, cap = StrokeCap.Round))
-        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .18f, size.height * .75f), androidx.compose.ui.geometry.Offset(size.width * .82f, size.height * .75f), espessuraTraco, cap = StrokeCap.Round)
-        drawArc(color, 25f, 130f, false, androidx.compose.ui.geometry.Offset(size.width * .39f, size.height * .73f), androidx.compose.ui.geometry.Size(size.width * .22f, size.height * .20f), style = Stroke(espessuraTraco))
     }
 }
 

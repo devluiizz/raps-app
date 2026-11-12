@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +34,70 @@ import com.raps.app.ui.theme.RapsBorderDefault
 import com.raps.app.ui.theme.RapsPrimarySoft
 import com.raps.app.ui.theme.RapsPrimaryStrong
 import com.raps.app.ui.theme.RapsTextSecondary
+import com.raps.app.ui.theme.RapsTextPrimary
 import com.raps.app.ui.theme.RapsTypography
+
+@Composable
+fun BotaoBuscaCabecalho() {
+    BotaoIconeCabecalho { IconeBusca(Modifier.size(18.dp), RapsTextPrimary) }
+}
+
+@Composable
+fun BotaoNotificacoesCabecalho() {
+    BotaoIconeCabecalho {
+        Box {
+            IconeSino(Modifier.size(18.dp), RapsTextPrimary)
+            Box(
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .size(7.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFC9535F)),
+            )
+        }
+    }
+}
+
+@Composable
+private fun BotaoIconeCabecalho(conteudo: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(38.dp)
+            .clip(RoundedCornerShape(13.dp))
+            .background(Color.White)
+            .clickable { },
+        contentAlignment = Alignment.Center,
+    ) { conteudo() }
+}
+
+@Composable
+fun IconeBusca(modifier: Modifier = Modifier, color: Color) {
+    Canvas(modifier) {
+        val espessuraTraco = 1.8.dp.toPx()
+        drawCircle(color, radius = size.minDimension * .29f, center = androidx.compose.ui.geometry.Offset(size.width * .42f, size.height * .42f), style = Stroke(espessuraTraco))
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .64f, size.height * .64f), androidx.compose.ui.geometry.Offset(size.width * .88f, size.height * .88f), espessuraTraco, cap = StrokeCap.Round)
+    }
+}
+
+@Composable
+private fun IconeSino(modifier: Modifier = Modifier, color: Color) {
+    Canvas(modifier) {
+        val espessuraTraco = 1.7.dp.toPx()
+        val caminho = Path().apply {
+            moveTo(size.width * .22f, size.height * .72f)
+            lineTo(size.width * .30f, size.height * .60f)
+            lineTo(size.width * .30f, size.height * .42f)
+            cubicTo(size.width * .30f, size.height * .03f, size.width * .70f, size.height * .03f, size.width * .70f, size.height * .42f)
+            lineTo(size.width * .70f, size.height * .60f)
+            lineTo(size.width * .80f, size.height * .72f)
+            close()
+        }
+        drawPath(caminho, color, style = Stroke(espessuraTraco, cap = StrokeCap.Round))
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .18f, size.height * .75f), androidx.compose.ui.geometry.Offset(size.width * .82f, size.height * .75f), espessuraTraco, cap = StrokeCap.Round)
+        drawArc(color, 25f, 130f, false, androidx.compose.ui.geometry.Offset(size.width * .39f, size.height * .73f), androidx.compose.ui.geometry.Size(size.width * .22f, size.height * .20f), style = Stroke(espessuraTraco))
+    }
+}
+
 @Composable
 fun BarraInferiorPacientes() {
     Surface(color = Color.White, shadowElevation = 0.dp) {

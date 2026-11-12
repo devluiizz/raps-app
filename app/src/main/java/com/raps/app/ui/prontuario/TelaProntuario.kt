@@ -1,7 +1,8 @@
 package com.raps.app.ui.prontuario
 import com.raps.app.presentation.model.PacienteMock
 import com.raps.app.ui.components.BarraInferiorPacientes
-import com.raps.app.ui.components.SetaDuplaPequena
+import com.raps.app.ui.components.BotaoBuscaCabecalho
+import com.raps.app.ui.components.BotaoNotificacoesCabecalho
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -70,7 +71,6 @@ import com.raps.app.ui.theme.RapsBorderDefault
 import com.raps.app.ui.theme.RapsPrimary
 import com.raps.app.ui.theme.RapsPrimaryStrong
 import com.raps.app.ui.theme.RapsPrimarySoft
-import com.raps.app.ui.theme.RapsSurface02
 import com.raps.app.ui.theme.RapsSurface03
 import com.raps.app.ui.theme.RapsTextPrimary
 import com.raps.app.ui.theme.RapsTextSecondary
@@ -104,12 +104,13 @@ fun TelaProntuario(paciente: PacienteMock, aoVoltar: () -> Unit, modeloTelaPront
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 14.dp,
+                    top = 16.dp,
                     bottom = 24.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
             ) {
                 item { CartaoResumoPaciente(paciente) }
+                item { ResumoEstatisticasPaciente(paciente) }
                 item {
                     SecaoDetalhes(titulo = "ACOMPANHAMENTO", subtitulo = "Serviços e grupos") {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -132,23 +133,14 @@ fun TelaProntuario(paciente: PacienteMock, aoVoltar: () -> Unit, modeloTelaPront
                         aoAcionar = modeloTelaProntuario::alternarDetalhes,
                     ) {
                         if (mostrarTodosDetalhes) {
-                            Column {
-                                Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                                    CampoDetalhe("Nascimento", paciente.nascimento, Modifier.weight(1f))
-                                    CampoDetalhe("CPF", paciente.cpf, Modifier.weight(1f))
-                                }
-                                DivisorDetalhe()
-                                Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                                    CampoDetalhe("RG", paciente.rg, Modifier.weight(1f))
-                                    CampoDetalhe("Telefone", paciente.telefone, Modifier.weight(1f))
-                                }
-                                DivisorDetalhe()
+                            Column(verticalArrangement = Arrangement.spacedBy(11.dp)) {
+                                CampoDetalhe("Nascimento", paciente.nascimento)
+                                CampoDetalhe("CPF", paciente.cpf)
+                                CampoDetalhe("RG", paciente.rg)
                                 CampoDetalhe("Mãe", paciente.mae)
-                                DivisorDetalhe()
                                 CampoDetalhe("Pai", paciente.pai)
-                                DivisorDetalhe()
-                                CampoDetalhe("E-mail", paciente.email)
-                                DivisorDetalhe()
+                                CampoDetalhe("Telefone", paciente.telefone)
+                                CampoDetalhe("Email", paciente.email)
                                 CampoDetalhe("Endereço", paciente.endereco)
                             }
                         }
@@ -191,126 +183,124 @@ fun TelaProntuario(paciente: PacienteMock, aoVoltar: () -> Unit, modeloTelaPront
 private fun CabecalhoProntuario(paciente: PacienteMock, aoVoltar: () -> Unit) {
     Column {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(66.dp)
-                .padding(horizontal = 14.dp),
+            modifier = Modifier.fillMaxWidth().height(78.dp).padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(13.dp))
-                    .background(Color.White)
-                    .clickable(onClick = aoVoltar),
-                contentAlignment = Alignment.Center,
-            ) { IconeSetaVoltar(Modifier.size(18.dp), RapsTextPrimary) }
-            Spacer(Modifier.width(11.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Box(Modifier.size(36.dp).clickable(onClick = aoVoltar), contentAlignment = Alignment.Center) {
+                IconeSetaVoltar(Modifier.size(18.dp), RapsTextPrimary)
+            }
+            Spacer(Modifier.width(17.dp))
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                Text(
+                    text = "PRONTUÁRIO ${paciente.numeroProntuario}",
+                    color = RapsPrimary,
+                    style = RapsTypography.bold12.copy(fontSize = 9.sp, letterSpacing = 1.sp),
+                    maxLines = 1,
+                )
                 Text(
                     text = paciente.nome,
                     color = RapsTextPrimary,
-                    style = RapsTypography.h5.copy(fontSize = 17.sp),
+                    style = RapsTypography.h5.copy(fontSize = 20.sp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = "Prontuário ${paciente.numeroProntuario}  •  Acompanhamento ativo",
-                    color = RapsTextSecondary,
-                    style = RapsTypography.bodyRegular10.copy(fontSize = 9.sp),
-                    maxLines = 1,
-                )
             }
-            Spacer(Modifier.width(6.dp))
-            SetaDuplaPequena(Modifier.size(18.dp), RapsTextSecondary)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                BotaoBuscaCabecalho()
+                BotaoNotificacoesCabecalho()
+            }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(RapsBorderDefault))
     }
 }
-
 @Composable
 private fun CartaoResumoPaciente(paciente: PacienteMock) {
-    val quantidadeServicosAtivos = paciente.etiquetas.sumOf { etiqueta ->
-        if (etiqueta.startsWith("+")) etiqueta.removePrefix("+").toIntOrNull() ?: 0 else 1
-    }
-    val quantidadeRegistrosRecentes = paciente.registrosRecentes.size
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .padding(15.dp),
-        verticalArrangement = Arrangement.spacedBy(13.dp),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(Color.White).padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(RapsPrimarySoft),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(paciente.iniciais, color = RapsPrimaryStrong, style = RapsTypography.bold18)
-            }
-            Spacer(Modifier.width(11.dp))
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Box(Modifier.size(7.dp).clip(CircleShape).background(Color(0xFF2B8A67)))
-                    Text("Acompanhamento ativo", color = Color(0xFF2B8A67), style = RapsTypography.bold12)
-                }
-                Text(
-                    "Prontuário ${paciente.numeroProntuario}  •  identificação interna",
-                    color = RapsTextSecondary,
-                    style = RapsTypography.bodyRegular10,
-                )
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(paciente.nome, color = RapsTextPrimary, style = RapsTypography.h5.copy(fontSize = 20.sp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Prontuário ${paciente.numeroProntuario}  •  Acompanhamento ativo", color = RapsTextSecondary, style = RapsTypography.bodyRegular12)
+                Box(Modifier.size(7.dp).clip(CircleShape).background(Color(0xFF2B8A67)))
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             AcaoResumo("+", "Nova evolução", primario = true, modifier = Modifier.weight(1f))
-            AcaoResumo("▦", "Agendar", primario = false, modifier = Modifier.weight(1f))
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            EstatisticaResumo(quantidadeServicosAtivos.toString(), "serviços e grupos ativos", Modifier.weight(1f))
-            EstatisticaResumo(quantidadeRegistrosRecentes.toString(), "registros recentes exibidos", Modifier.weight(1f))
+            AcaoResumo("", "Agendar", primario = false, modifier = Modifier.weight(1f))
         }
     }
 }
 
 @Composable
+private fun ResumoEstatisticasPaciente(paciente: PacienteMock) {
+    val quantidadeServicosAtivos = paciente.etiquetas.sumOf { etiqueta ->
+        if (etiqueta.startsWith("+")) etiqueta.removePrefix("+").toIntOrNull() ?: 0 else 1
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        EstatisticaResumo(quantidadeServicosAtivos.toString(), "serviços e grupos ativos", Modifier.weight(1f))
+        EstatisticaResumo(paciente.registrosRecentes.size.toString(), "registros recentes exibidos", Modifier.weight(1f))
+        EstatisticaResumo("#${paciente.numeroProntuario}", "identificação interna", Modifier.weight(1f))
+    }
+}
+@Composable
 private fun AcaoResumo(simbolo: String, rotulo: String, primario: Boolean, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
-            .height(42.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .height(70.dp)
+            .clip(RoundedCornerShape(16.dp))
             .background(if (primario) RapsPrimary else RapsPrimarySoft)
             .clickable { }
             .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        Text(simbolo, color = if (primario) Color.White else RapsPrimaryStrong, style = RapsTypography.bold14)
+        if (primario) {
+            Text(simbolo, color = Color.White, style = RapsTypography.bold18)
+        } else {
+            IconeCalendarioResumo(Modifier.size(19.dp), RapsPrimaryStrong)
+        }
         Spacer(Modifier.width(6.dp))
         Text(
             rotulo,
             color = if (primario) Color.White else RapsPrimaryStrong,
-            style = RapsTypography.bold12,
-            maxLines = 1,
+            style = RapsTypography.bold14,
+            maxLines = 2,
+            lineHeight = 18.sp,
         )
     }
 }
 
 @Composable
 private fun EstatisticaResumo(valor: String, rotulo: String, modifier: Modifier = Modifier) {
-    Row(
+    Column(
         modifier = modifier
+            .height(88.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(RapsSurface02)
-            .padding(horizontal = 10.dp, vertical = 9.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .background(Color.White)
+            .padding(horizontal = 12.dp, vertical = 11.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(valor, color = RapsPrimaryStrong, style = RapsTypography.bold18)
-        Spacer(Modifier.width(7.dp))
         Text(rotulo, color = RapsTextSecondary, style = RapsTypography.bodyRegular10, lineHeight = 13.sp)
+    }
+}
+
+@Composable
+private fun IconeCalendarioResumo(modifier: Modifier = Modifier, color: Color) {
+    Canvas(modifier) {
+        val espessura = 1.7.dp.toPx()
+        drawRoundRect(
+            color = color,
+            topLeft = androidx.compose.ui.geometry.Offset(size.width * .12f, size.height * .20f),
+            size = androidx.compose.ui.geometry.Size(size.width * .76f, size.height * .68f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()),
+            style = Stroke(espessura),
+        )
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .12f, size.height * .42f), androidx.compose.ui.geometry.Offset(size.width * .88f, size.height * .42f), espessura)
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .32f, size.height * .10f), androidx.compose.ui.geometry.Offset(size.width * .32f, size.height * .30f), espessura, cap = StrokeCap.Round)
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .68f, size.height * .10f), androidx.compose.ui.geometry.Offset(size.width * .68f, size.height * .30f), espessura, cap = StrokeCap.Round)
     }
 }
 
@@ -344,13 +334,7 @@ private fun SecaoDetalhes(
                 )
             }
         }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(Color.White)
-                .padding(14.dp),
-        ) { content() }
+        content()
     }
 }
 
@@ -371,9 +355,21 @@ private fun EtiquetaServico(rotulo: String) {
 
 @Composable
 private fun CampoDetalhe(rotulo: String, valor: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.padding(vertical = 9.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text(rotulo, color = RapsTextSecondary, style = RapsTypography.bodyRegular10)
-        Text(valor, color = RapsTextPrimary, style = RapsTypography.bodyRegular12)
+    Row(
+        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White)
+            .padding(horizontal = 15.dp, vertical = 18.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(rotulo, color = RapsTextSecondary, style = RapsTypography.bodyRegular12)
+        Spacer(Modifier.width(10.dp))
+        Text(
+            valor,
+            color = RapsTextPrimary,
+            style = RapsTypography.bold12,
+            maxLines = 2,
+            textAlign = androidx.compose.ui.text.style.TextAlign.End,
+        )
     }
 }
 
@@ -406,7 +402,7 @@ private fun ItemLinhaDoTempo(
             Box(
                 Modifier
                     .width(1.dp)
-                    .height(154.dp)
+                    .height(170.dp)
                     .background(RapsBorderDefault),
             )
         }
@@ -416,22 +412,25 @@ private fun ItemLinhaDoTempo(
                 .weight(1f)
                 .padding(bottom = 12.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(RapsBgLight)
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+                .background(Color.White)
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Box(
-                    Modifier.clip(RoundedCornerShape(6.dp)).background(RapsPrimarySoft)
-                        .padding(horizontal = 7.dp, vertical = 4.dp),
-                ) { Text(servico, color = RapsPrimaryStrong, style = RapsTypography.bold12.copy(fontSize = 10.sp)) }
-                Text(data, color = RapsTextSecondary, style = RapsTypography.bodyRegular10, maxLines = 1)
+                Text(servico, color = RapsTextPrimary, style = RapsTypography.bold12, maxLines = 1)
+                Text(
+                    profissional,
+                    color = RapsTextSecondary,
+                    style = RapsTypography.bodyRegular10,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f).padding(start = 5.dp),
+                )
+                Text(data, color = RapsTextSecondary, style = RapsTypography.bodyRegular10.copy(fontSize = 9.sp), maxLines = 1)
             }
-            Text(profissional, color = RapsTextPrimary, style = RapsTypography.bold14)
             Text(descricao, color = RapsTextSecondary, style = RapsTypography.bodyRegular12, lineHeight = 17.sp)
             DivisorDetalhe()
             Text(autor, color = RapsTextSecondary, style = RapsTypography.bodyRegular10, lineHeight = 14.sp)
