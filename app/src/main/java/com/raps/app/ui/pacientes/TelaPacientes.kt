@@ -127,31 +127,35 @@ fun TelaPacientes(aoClicarPaciente: (PacienteMock) -> Unit = {}, modeloTelaPacie
                     )
                 }
                 item {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(11.dp))
-                                .background(Color.White)
-                                .clickable { menuFiltroExpandido = true }
-                                .padding(start = 12.dp, end = 9.dp, top = 5.dp, bottom = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(estadoDaTela.filtroSelecionado, color = RapsAccent, style = RapsTypography.bodyRegular10)
-                            Spacer(Modifier.width(8.dp))
-                            SetaDuplaPequena(modifier = Modifier.size(14.dp), color = RapsTextPrimary)
-                        }
-                        DropdownMenu(
-                            expanded = menuFiltroExpandido,
-                            onDismissRequest = { menuFiltroExpandido = false },
-                        ) {
-                            TelaPacientesViewModel.UiState.filtros.forEach { filtro ->
-                                DropdownMenuItem(
-                                    text = { Text(filtro, style = RapsTypography.bodyRegular12) },
-                                    onClick = {
-                                        modeloTelaPacientes.aoSelecionarFiltro(filtro)
-                                        menuFiltroExpandido = false
-                                    },
-                                )
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        Box {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(11.dp))
+                                    .background(Color.White)
+                                    .clickable { menuFiltroExpandido = true }
+                                    .padding(start = 12.dp, end = 9.dp, top = 5.dp, bottom = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(estadoDaTela.filtroSelecionado, color = RapsAccent, style = RapsTypography.bodyRegular10)
+                                Spacer(Modifier.width(8.dp))
+                                SetaDuplaPequena(modifier = Modifier.size(14.dp), color = RapsTextPrimary)
+                            }
+                            DropdownMenu(
+                                expanded = menuFiltroExpandido,
+                                onDismissRequest = { menuFiltroExpandido = false },
+                                containerColor = Color.White,
+                                tonalElevation = 0.dp,
+                            ) {
+                                TelaPacientesViewModel.UiState.filtros.forEach { filtro ->
+                                    DropdownMenuItem(
+                                        text = { Text(filtro, style = RapsTypography.bodyRegular12) },
+                                        onClick = {
+                                            modeloTelaPacientes.aoSelecionarFiltro(filtro)
+                                            menuFiltroExpandido = false
+                                        },
+                                    )
+                                }
                             }
                         }
                     }
