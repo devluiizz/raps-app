@@ -5,6 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -40,6 +45,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -144,13 +150,27 @@ fun TelaLogin(aoEntrar: () -> Unit, modeloTelaLogin: TelaLoginViewModel = viewMo
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 15.dp).height(52.dp).clip(RoundedCornerShape(12.dp))
-                        .background(RapsPrimary).clickable { modeloTelaLogin.entrar(aoEntrar) },
+                        .background(RapsPrimary).clickable(enabled = !estadoDaTela.carregando) { modeloTelaLogin.entrar(aoEntrar) },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
                     Text("Entrar", color = Color.White, style = RapsTypography.button.copy(fontSize = 14.sp))
                     Spacer(Modifier.width(12.dp))
-                    IconeSetaDireita(Modifier.size(18.dp), Color.White)
+                    AnimatedContent(
+                        targetState = estadoDaTela.carregando,
+                        transitionSpec = { fadeIn(tween(150)) togetherWith fadeOut(tween(100)) },
+                        label = "icone_botao_entrar",
+                    ) { carregando ->
+                        if (carregando) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            IconeSetaDireita(Modifier.size(18.dp), Color.White)
+                        }
+                    }
                 }
                 Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("Esqueci minha senha", color = RapsPrimaryStrong, style = RapsTypography.bold12.copy(fontSize = 12.sp), modifier = Modifier.clickable { })

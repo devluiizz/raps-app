@@ -1,6 +1,9 @@
 package com.raps.app.ui.login
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,6 +16,7 @@ class TelaLoginViewModel : ViewModel() {
         val senhaVisivel: Boolean = false,
         val lembrarDispositivo: Boolean = false,
         val erroLogin: Boolean = false,
+        val carregando: Boolean = false,
     )
 
     private val _estadoDaTela = MutableStateFlow(UiState())
@@ -24,13 +28,18 @@ class TelaLoginViewModel : ViewModel() {
     fun alternarLembrarDispositivo() = _estadoDaTela.update { it.copy(lembrarDispositivo = !it.lembrarDispositivo) }
 
     fun entrar(aoEntrar: () -> Unit) {
-        val estado = _estadoDaTela.value
-        val usuarioValido = estado.enderecoEmail.trim().equals(EMAIL_MOCK, ignoreCase = true) ||
-            estado.enderecoEmail.trim() == MATRICULA_MOCK
-        if (usuarioValido && estado.senha == SENHA_MOCK) {
-            aoEntrar()
-        } else {
-            _estadoDaTela.update { it.copy(erroLogin = true) }
+        if (_estadoDaTela.value.carregando) return
+        _estadoDaTela.update { it.copy(carregando = true, erroLogin = false) }
+
+        viewModelScope.launch {
+            delay(700)
+            val estado = _estadoDaTela.value
+            val usuarioValido = estado.enderecoEmail.trim().equals(EMAIL_MOCK, ignoreCase = true) ||
+                estado.enderecoEmail.trim() == MATRICULA_MOCK
+            val credenciaisValidas = usuarioValido && estado.senha == SENHA_MOCK
+
+            _estadoDaTela.update { it.copy(carregando = false, erroLogin = !credenciaisValidas) }
+            if (credenciaisValidas) aoEntrar()
         }
     }
 
