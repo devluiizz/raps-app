@@ -1,4 +1,4 @@
-package com.raps.app.ui
+package com.raps.app.ui.login
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

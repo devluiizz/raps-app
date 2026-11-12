@@ -1,4 +1,7 @@
-package com.raps.app.ui
+package com.raps.app.ui.pacientes
+import com.raps.app.presentation.model.PacienteMock
+import com.raps.app.ui.components.BarraInferiorPacientes
+import com.raps.app.ui.components.SetaDuplaPequena
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -75,14 +78,6 @@ import com.raps.app.ui.theme.RapsSurface03
 import com.raps.app.ui.theme.RapsTextPrimary
 import com.raps.app.ui.theme.RapsTextSecondary
 import com.raps.app.ui.theme.RapsTypography
-
-data class PacienteMock(
-    val nome: String,
-    val iniciais: String,
-    val numeroProntuario: String,
-    val ultimaVisita: String,
-    val etiquetas: List<String>,
-)
 
 @Composable
 fun TelaPacientes(aoClicarPaciente: (PacienteMock) -> Unit = {}, modeloTelaPacientes: TelaPacientesViewModel = viewModel()) {
@@ -301,52 +296,6 @@ private fun CampoBusca(consulta: String, onValueChange: (String) -> Unit, quanti
 }
 
 @Composable
-internal fun BarraInferiorPacientes() {
-    Surface(color = Color.White, shadowElevation = 0.dp) {
-        Column(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)) {
-            Box(Modifier.fillMaxWidth().height(1.dp).background(RapsBorderDefault))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(63.dp)
-                    .padding(horizontal = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround,
-            ) {
-                ItemBarraInferior("Início", "inicio")
-                ItemBarraInferior("Pacientes", "paciente", selecionado = true)
-                ItemBarraInferior("Agenda", "calendario")
-                ItemBarraInferior("Minha agenda", "adicionarPessoa")
-                ItemBarraInferior("Mais", "mais")
-            }
-        }
-    }
-}
-
-@Composable
-private fun ItemBarraInferior(rotulo: String, nomeIcone: String, selecionado: Boolean = false) {
-    Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (selecionado) RapsPrimarySoft else Color.Transparent)
-            .width(if (selecionado) 64.dp else 57.dp)
-            .height(48.dp)
-            .clickable { },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        IconeNavegacao(nomeIcone, Modifier.size(18.dp), if (selecionado) RapsPrimaryStrong else RapsTextSecondary)
-        Spacer(Modifier.height(3.dp))
-        Text(
-            rotulo,
-            color = if (selecionado) RapsPrimaryStrong else RapsTextSecondary,
-            style = RapsTypography.bodyRegular10.copy(fontSize = 8.sp),
-            maxLines = 1,
-        )
-    }
-}
-
-@Composable
 private fun IconeBusca(modifier: Modifier = Modifier, color: Color) {
     Canvas(modifier) {
         val espessuraTraco = 1.8.dp.toPx()
@@ -371,54 +320,6 @@ private fun IconeSino(modifier: Modifier = Modifier, color: Color) {
         drawPath(caminho, color, style = Stroke(espessuraTraco, cap = StrokeCap.Round))
         drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .18f, size.height * .75f), androidx.compose.ui.geometry.Offset(size.width * .82f, size.height * .75f), espessuraTraco, cap = StrokeCap.Round)
         drawArc(color, 25f, 130f, false, androidx.compose.ui.geometry.Offset(size.width * .39f, size.height * .73f), androidx.compose.ui.geometry.Size(size.width * .22f, size.height * .20f), style = Stroke(espessuraTraco))
-    }
-}
-
-@Composable
-internal fun SetaDuplaPequena(modifier: Modifier = Modifier, color: Color) {
-    Canvas(modifier) {
-        val caminho = Path().apply {
-            moveTo(size.width * .38f, size.height * .20f)
-            lineTo(size.width * .68f, size.height * .50f)
-            lineTo(size.width * .38f, size.height * .80f)
-        }
-        drawPath(caminho, color, style = Stroke(width = 1.8.dp.toPx(), cap = StrokeCap.Round))
-    }
-}
-
-@Composable
-private fun IconeNavegacao(nome: String, modifier: Modifier, color: Color) {
-    Canvas(modifier) {
-        val estiloTraco = Stroke(width = 1.45.dp.toPx(), cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round)
-        when (nome) {
-            "inicio" -> {
-                val caminho = Path().apply { moveTo(size.width * .12f, .48f * size.height); lineTo(.5f * size.width, .13f * size.height); lineTo(.88f * size.width, .48f * size.height); lineTo(.82f * size.width, .48f * size.height); lineTo(.82f * size.width, .89f * size.height); lineTo(.18f * size.width, .89f * size.height); lineTo(.18f * size.width, .48f * size.height); close() }
-                drawPath(caminho, color, style = estiloTraco)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .43f, size.height * .89f), androidx.compose.ui.geometry.Offset(size.width * .43f, size.height * .62f), estiloTraco.width)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .57f, size.height * .62f), androidx.compose.ui.geometry.Offset(size.width * .57f, size.height * .89f), estiloTraco.width)
-            }
-            "paciente" -> {
-                drawCircle(color, size.minDimension * .17f, androidx.compose.ui.geometry.Offset(size.width * .50f, size.height * .30f), style = estiloTraco)
-                val caminho = Path().apply { moveTo(.14f * size.width, .84f * size.height); cubicTo(.15f * size.width, .52f * size.height, .85f * size.width, .52f * size.height, .86f * size.width, .84f * size.height); close() }
-                drawPath(caminho, color, style = estiloTraco)
-            }
-            "calendario" -> {
-                drawRoundRect(color, androidx.compose.ui.geometry.Offset(size.width * .12f, size.height * .20f), androidx.compose.ui.geometry.Size(size.width * .76f, size.height * .68f), androidx.compose.ui.geometry.CornerRadius(3.dp.toPx()), style = estiloTraco)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .12f, size.height * .40f), androidx.compose.ui.geometry.Offset(size.width * .88f, size.height * .40f), estiloTraco.width)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .32f, size.height * .10f), androidx.compose.ui.geometry.Offset(size.width * .32f, size.height * .30f), estiloTraco.width, cap = StrokeCap.Round)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .68f, size.height * .10f), androidx.compose.ui.geometry.Offset(size.width * .68f, size.height * .30f), estiloTraco.width, cap = StrokeCap.Round)
-            }
-            "adicionarPessoa" -> {
-                drawCircle(color, size.minDimension * .15f, androidx.compose.ui.geometry.Offset(size.width * .40f, size.height * .30f), style = estiloTraco)
-                val caminho = Path().apply { moveTo(.08f * size.width, .84f * size.height); cubicTo(.08f * size.width, .53f * size.height, .70f * size.width, .53f * size.height, .70f * size.width, .84f * size.height) }
-                drawPath(caminho, color, style = estiloTraco)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .78f, size.height * .30f), androidx.compose.ui.geometry.Offset(size.width * .78f, size.height * .58f), estiloTraco.width, cap = StrokeCap.Round)
-                drawLine(color, androidx.compose.ui.geometry.Offset(size.width * .64f, size.height * .44f), androidx.compose.ui.geometry.Offset(size.width * .92f, size.height * .44f), estiloTraco.width, cap = StrokeCap.Round)
-            }
-            else -> {
-                repeat(3) { indice -> drawCircle(color, 1.4.dp.toPx(), androidx.compose.ui.geometry.Offset(size.width * (.22f + .28f * indice), size.height * .50f)) }
-            }
-        }
     }
 }
 

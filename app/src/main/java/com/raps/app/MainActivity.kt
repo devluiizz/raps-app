@@ -9,10 +9,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.raps.app.ui.PacienteMock
-import com.raps.app.ui.TelaLogin
-import com.raps.app.ui.TelaPacientes
-import com.raps.app.ui.TelaProntuario
+import com.raps.app.presentation.model.PacienteMock
+import com.raps.app.ui.login.TelaLogin
+import com.raps.app.ui.pacientes.TelaPacientes
+import com.raps.app.ui.prontuario.TelaProntuario
 import com.raps.app.ui.theme.RapsAppTheme
 
 class MainActivity : ComponentActivity() {

@@ -1,4 +1,4 @@
-package com.raps.app.ui
+package com.raps.app.ui.prontuario
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

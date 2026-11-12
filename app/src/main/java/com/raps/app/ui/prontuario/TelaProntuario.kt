@@ -1,4 +1,7 @@
-package com.raps.app.ui
+package com.raps.app.ui.prontuario
+import com.raps.app.presentation.model.PacienteMock
+import com.raps.app.ui.components.BarraInferiorPacientes
+import com.raps.app.ui.components.SetaDuplaPequena
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -80,12 +83,7 @@ fun TelaProntuario(paciente: PacienteMock, aoVoltar: () -> Unit, modeloTelaPront
     DisposableEffect(modeloTelaProntuario) {
         onDispose { modeloTelaProntuario.redefinirDetalhes() }
     }
-    val ehPacienteReferencia = paciente.nome == "João da Silva"
-    val servicosConhecidos = if (ehPacienteReferencia) {
-        listOf("Psicologia", "Grupo de Homens", "Assistência Social")
-    } else {
-        paciente.etiquetas.filterNot { it.startsWith("+") }
-    }
+    val servicosConhecidos = paciente.etiquetas.filterNot { it.startsWith("+") }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -136,22 +134,22 @@ fun TelaProntuario(paciente: PacienteMock, aoVoltar: () -> Unit, modeloTelaPront
                         if (mostrarTodosDetalhes) {
                             Column {
                                 Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                                    CampoDetalhe("Nascimento", if (ehPacienteReferencia) "08/11/1991" else "Não informado", Modifier.weight(1f))
-                                    CampoDetalhe("CPF", if (ehPacienteReferencia) "111.222.333-44" else "Não informado", Modifier.weight(1f))
+                                    CampoDetalhe("Nascimento", paciente.nascimento, Modifier.weight(1f))
+                                    CampoDetalhe("CPF", paciente.cpf, Modifier.weight(1f))
                                 }
                                 DivisorDetalhe()
                                 Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                                    CampoDetalhe("RG", if (ehPacienteReferencia) "00.111.222-3" else "Não informado", Modifier.weight(1f))
-                                    CampoDetalhe("Telefone", if (ehPacienteReferencia) "(35) 99999-9999" else "Não informado", Modifier.weight(1f))
+                                    CampoDetalhe("RG", paciente.rg, Modifier.weight(1f))
+                                    CampoDetalhe("Telefone", paciente.telefone, Modifier.weight(1f))
                                 }
                                 DivisorDetalhe()
-                                CampoDetalhe("Mãe", if (ehPacienteReferencia) "Regina Moreira da Silva" else "Não informado")
+                                CampoDetalhe("Mãe", paciente.mae)
                                 DivisorDetalhe()
-                                CampoDetalhe("Pai", if (ehPacienteReferencia) "Marcos Antonio Fernandes Silva" else "Não informado")
+                                CampoDetalhe("Pai", paciente.pai)
                                 DivisorDetalhe()
-                                CampoDetalhe("E-mail", if (ehPacienteReferencia) "joaosilva@gmail.com.br" else "Não informado")
+                                CampoDetalhe("E-mail", paciente.email)
                                 DivisorDetalhe()
-                                CampoDetalhe("Endereço", if (ehPacienteReferencia) "Rua Joãozinho, 46, Conjunto, Poços de Caldas" else "Não informado")
+                                CampoDetalhe("Endereço", paciente.endereco)
                             }
                         }
                     }
@@ -163,36 +161,17 @@ fun TelaProntuario(paciente: PacienteMock, aoVoltar: () -> Unit, modeloTelaPront
                         acao = "+ Registrar",
                         aoAcionar = { },
                     ) {
-                        if (ehPacienteReferencia) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            ItemLinhaDoTempo(
-                                servico = "Psicologia",
-                                profissional = "Maria Silva",
-                                data = "17/08/2026  •  10:20",
-                                descricao = "Atendimento individual registrado para acompanhamento do plano terapêutico. Paciente participou da escuta e foram alinhados próximos passos.",
-                                autor = "Registrado por Maria Silva  •  Psicóloga  •  CRP fictício",
-                                ehPrimeiro = true,
-                            )
-                            ItemLinhaDoTempo(
-                                servico = "Assistência Social",
-                                profissional = "Ana Souza",
-                                data = "16/08/2026  •  14:05",
-                                descricao = "Registro de acompanhamento social e atualização das orientações institucionais pertinentes ao atendimento.",
-                                autor = "Registrado por Ana Souza  •  Assistente Social",
-                            )
-                            ItemLinhaDoTempo(
-                                servico = "Grupo de Homens",
-                                profissional = "Paulo Lima",
-                                data = "14/08/2026  •  14:00",
-                                descricao = "Participação em atividade coletiva. Atividade registrada no prontuário multiprofissional.",
-                                autor = "Registrado por Paulo Lima  •  Terapeuta ocupacional",
-                            )
-                            ItemLinhaDoTempo(
-                                servico = "Psiquiatria",
-                                profissional = "Dr. Lucas",
-                                data = "12/08/2026  •  09:30",
-                                descricao = "Consulta de acompanhamento registrada. Conteúdo demonstrativo, sem informações médicas reais.",
-                                autor = "Registrado por Dr. Lucas  •  Médico  •  CRM fictício",
-                            )
+                        if (paciente.registrosRecentes.isNotEmpty()) Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            paciente.registrosRecentes.forEachIndexed { indice, registro ->
+                                ItemLinhaDoTempo(
+                                    servico = registro.servico,
+                                    profissional = registro.profissional,
+                                    data = registro.data,
+                                    descricao = registro.descricao,
+                                    autor = registro.autor,
+                                    ehPrimeiro = indice == 0,
+                                )
+                            }
                         } else {
                             Text(
                                 "Nenhum registro recente informado",
@@ -254,7 +233,7 @@ private fun CartaoResumoPaciente(paciente: PacienteMock) {
     val quantidadeServicosAtivos = paciente.etiquetas.sumOf { etiqueta ->
         if (etiqueta.startsWith("+")) etiqueta.removePrefix("+").toIntOrNull() ?: 0 else 1
     }
-    val quantidadeRegistrosRecentes = if (paciente.nome == "João da Silva") 4 else 0
+    val quantidadeRegistrosRecentes = paciente.registrosRecentes.size
     Column(
         modifier = Modifier
             .fillMaxWidth()

@@ -1,4 +1,6 @@
-package com.raps.app.ui
+package com.raps.app.ui.pacientes
+import com.raps.app.presentation.model.PacienteMock
+import com.raps.app.ui.components.SetaDuplaPequena
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
